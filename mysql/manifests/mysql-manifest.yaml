@@ -1,0 +1,62 @@
+---
+# Create namespace for MySql db
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mysql
+
+---
+# Create service account for MySql db
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mysql-db
+  namespace: mysql
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mysql-db
+  namespace: mysql
+spec:
+  type: NodePort
+  selector:
+    app: mysql-db
+  ports:
+    - port: 3306
+      targetPort: 3306
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-db
+  labels:
+    app: mysql-db
+spec:
+  serviceName: mysql-db
+  selector:
+    matchLabels:
+      app: mysql-db
+  template:
+    metadata:
+      labels:
+        app: mysql-db
+    spec:
+      serviceAccountName: mysql-db
+      containers:
+      - name: mysql-db
+        image: mysql:8.2.0
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 3306
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: In1t1alR00tPa55w0rd
+          - name: MYSQL_USER
+            value: test_user1
+          - name: MYSQL_PASSWORD
+            value: UHGMLk1
+          - name: MYSQL_DATABASE
+            value: 

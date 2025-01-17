@@ -1,0 +1,38 @@
+---
+# Create namespace for LG agent
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lg-agent
+
+---
+# Create service account for LG agent
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lg-agent
+  namespace: lg-agent
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lg-agent
+  labels:
+    app: lg-agent
+  namespace: lg-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lg-agent
+  template:
+    metadata:
+      labels:
+        app: lg-agent
+    spec:
+      serviceAccountName: lg-agent
+      containers:
+      - name: lg-agent
+        image: lg-agent-k8s:latest
+        imagePullPolicy: IfNotPresent

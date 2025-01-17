@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "conjur-ent-openapi"
+version = "0.1.0"
+description = ""
+authors = ["jodyhuntatx"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+openapi-core = "^0.19.4"
+jsonref = "^1.1.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

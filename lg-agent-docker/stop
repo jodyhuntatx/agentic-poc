@@ -1,0 +1,3 @@
+#!/bin/bash
+source ./agent-vars.sh
+docker stop $AGENT_CONTAINER && docker rm $AGENT_CONTAINER

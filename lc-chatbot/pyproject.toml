@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "lc-chatbot"
+version = "0.1.0"
+description = ""
+authors = ["jodyhuntatx"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+param = "^2.2.0"
+panel = "^1.5.5"
+wikipedia = "^1.4.0"
+langchain-openai = "^0.3.0"
+langchain = "^0.3.14"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

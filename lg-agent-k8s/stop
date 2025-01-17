@@ -1,0 +1,3 @@
+#!/bin/bash
+source ./agent-vars.sh
+kubectl delete -f lg-agent-manifest.yaml

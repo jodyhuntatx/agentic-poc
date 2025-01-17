@@ -1,0 +1,342 @@
+components:
+  schemas:
+    AuthenticatorsResponse:
+      type: object
+      properties:
+        installed:
+          description: "The authenticators installed on the Conjur server"
+          type: array
+          items:
+            type: string
+          example: [ "authn" ]
+
+        configured:
+          description: "The authenticators configured on the Conjur server"
+          type: array
+          items:
+            type: string
+          example: [ "authn" ]
+
+        enabled:
+          description: "The authenticators enabled on the Conjur server"
+          type: array
+          items:
+            type: string
+          example: [ "authn" ]
+
+    AuthenticatorStatus:
+      type: object
+      properties:
+        status:
+          description: "The status of the endpoint, 'error' if there was an error"
+          type: string
+          example: 'error'
+        error:
+          description: "The error message if there was an error"
+          type: string
+          example: "#<Errors::Authentication::AuthenticatorNotFound: CONJ00001E Authenticator 'authn-oidc' is not implemented in Conjur>"
+      required:
+        - status
+
+    Info:
+      type: object
+      properties:
+        authenticators:
+          type: object
+          properties:
+            installed:
+              type: array
+              items:
+                type: string
+            configured:
+              type: array
+              items:
+                type: string
+            enabled:
+              type: array
+              items:
+                type: string
+        configuration:
+          type: object
+        role:
+          type: string
+        container:
+          type: string
+        release:
+          type: string
+        version:
+          type: string
+        services:
+          type: object
+
+    WhoAmI:
+      type: object
+      description: "Information about the client making a request"
+      properties:
+
+        client_ip:
+          description: "The request client IP address as determined by Conjur. This same IP address appears in application logs and audit logs."
+          type: string
+          example: "127.0.0.1"
+
+        user_agent:
+          description: "The incoming request HTTP user agent header."
+          type: string
+          example: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+
+        account:
+          description: "The account attribute of the client provided access token."
+          type: string
+          example: "dev"
+
+        username:
+          description: "The username attribute of the provided access token."
+          type: string
+          example: "admin"
+
+        token_issued_at:
+          description: "The issued timestamp, that is, when the provided access token was created (iat field in the JWT)"
+          type: string
+          example: "2017-08-04T22:27:20+00:00"
+
+  responses:
+    AuthenticatorsIndex:
+      description: "Details about authenticators for this Conjur server"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthenticatorsResponse'
+
+    WhoAmI:
+      description: "Details about the client making the request"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WhoAmI'
+
+    AuthenticatorStatus:
+      description: The response contains info about the result
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthenticatorStatus'
+
+  paths:
+    WhoAmI:
+      parameters:
+        - $ref: 'openapi.yml#/components/parameters/RequestID'
+      get:
+        tags:
+        - "status"
+        summary: "Provides information about the client making an API request."
+        description: |
+          WhoAmI provides information about the client making an API request.
+          It can be used to help troubleshoot configuration by verifying authentication
+          and the client IP address for audit and network access restrictions.
+          For more information, see Host Attributes.
+        operationId: "whoAmI"
+        responses:
+          "200":
+            $ref: '#/components/responses/WhoAmI'
+          "401":
+            $ref: 'openapi.yml#/components/responses/UnauthorizedError'
+
+        security:
+          - conjurAuth: []
+
+    ServiceAuthenticatorStatus:
+      parameters:
+        - $ref: 'openapi.yml#/components/parameters/RequestID'
+      get:
+        tags:
+        - 'status'
+        operationId: "getServiceAuthenticatorStatus"
+        summary: "Details whether an authentication service has been configured properly"
+        description: |
+          Once the status webservice has been properly configured and the relevant user
+          groups have been given permissions to access the status webservice, the
+          users in those groups can check the status of the authenticator.
+
+          Supported Authenticators:
+            - Azure
+            - OIDC
+
+          Not Supported:
+            - AWS IAM
+            - Kubernetes
+            - LDAP
+
+          See [Conjur Documentation](https://docs.conjur.org/Latest/en/Content/Integrations/Authn-status.htm)
+          for details on setting up the authenticator status webservice.
+        parameters:
+          - name: authenticator
+            in: path
+            schema:
+              type: string
+            required: true
+            description: "The type of authenticator"
+            example: "authn-oidc"
+            
+          - $ref: 'openapi.yml#/components/parameters/ServiceID'
+            
+          - name: account
+            in: path
+            schema:
+              type: string
+            required: true
+            description: "The organization account name"
+            example: "dev"
+            
+        responses:
+          '200':
+            $ref: '#/components/responses/AuthenticatorStatus'
+          "400":
+            $ref: 'openapi.yml#/components/responses/BadRequest'
+          "401":
+            $ref: 'openapi.yml#/components/responses/UnauthorizedError'
+          "403":
+            $ref: 'openapi.yml#/components/responses/InadequatePrivileges'
+          "404":
+            description: "The service was not found"
+          "500":
+            $ref: '#/components/responses/AuthenticatorStatus'
+          '501':
+            $ref: '#/components/responses/AuthenticatorStatus'
+
+        security:
+          - conjurAuth: []
+
+    AuthenticatorStatus:
+      parameters:
+        - $ref: 'openapi.yml#/components/parameters/RequestID'
+      get:
+        tags:
+        - 'status'
+        operationId: "getGCPAuthenticatorStatus"
+        summary: "Details whether an authentication service has been configured properly"
+        description: |
+          Once the status webservice has been properly configured and the relevant user
+          groups have been given permissions to access the status webservice, the
+          users in those groups can check the status of the authenticator.
+
+          This operation only supports the GCP authenticator
+
+          See [Conjur Documentation](https://docs.conjur.org/Latest/en/Content/Integrations/Authn-status.htm)
+          for details on setting up the authenticator status webservice.
+        parameters:
+          - name: account
+            in: path
+            schema:
+              type: string
+            required: true
+            description: "The organization account name"
+            example: "dev"
+            
+        responses:
+          '200':
+            $ref: '#/components/responses/AuthenticatorStatus'
+          "400":
+            $ref: 'openapi.yml#/components/responses/BadRequest'
+          "403":
+            $ref: 'openapi.yml#/components/responses/InadequatePrivileges'
+          "404":
+            description: "The service was not found"
+          "500":
+            $ref: '#/components/responses/AuthenticatorStatus'
+          '501':
+            $ref: '#/components/responses/AuthenticatorStatus'
+
+        security:
+          - conjurAuth: []
+
+    AuthenticatorsIndex:
+      parameters:
+        - $ref: 'openapi.yml#/components/parameters/RequestID'
+      get:
+        tags:
+        - "status"
+        summary: "Details about which authenticators are on the Conjur Server"
+        description: |
+          Response contains three members: installed, configured, and enabled.
+          
+          installed: The authenticator is implemented in Conjur and is available for configuration
+          configured: The authenticator has a webservice in the DB that was loaded by policy
+          enabled: The authenticator is enabled (in the DB or in the ENV) and is ready for authentication
+        operationId: "getAuthenticators"
+        responses:
+          "200":
+            $ref: '#/components/responses/AuthenticatorsIndex'
+
+    Health:
+      get:
+        x-conjur-settings:
+          enterprise-only: true
+        tags:
+        - "status"
+        summary: "Health info about conjur"
+        description: |
+          You can request health checks against any cluster node using the Conjur API.
+          These routes do not require authentication.
+
+          The health check attempts an internal HTTP or TCP connection to
+          each Conjur Enterprise service. It also attempts a simple transaction against all internal databases.
+        operationId: "health"
+        responses:
+          "200":
+            description: The tests were successful
+            content:
+              application/json:
+                schema:
+                  type: object
+          "502":
+            description: The tests failed
+
+    RemoteHealth:
+      get:
+        x-conjur-settings:
+          enterprise-only: true
+        tags:
+          - "status"
+        summary: "Health info about a given Conjur Enterprise server"
+        description: |
+          Use the remote_health route to check the health of any Conjur Enterprise Server from any other Conjur Enterprise Server.
+          With this route, you can check master health relative to a follower, or follower health relative
+          to a standby, and so on.
+        operationId: "remoteHealth"
+        parameters:
+          - name: remote
+            in: path
+            schema:
+              type: string
+            required: true
+            description: "The hostname of the remote to check"
+            example: "conjur.myorg.com"
+        responses:
+          "200":
+            description: The tests were successful
+            content:
+              application/json:
+                schema:
+                  type: object
+          "502":
+            description: The tests failed
+    Info:
+      get:
+        x-conjur-settings:
+          enterprise-only: true
+        tags:
+          - "status"
+        summary: "Basic information about the Conjur Enterprise server"
+        description: |
+          Information about the Conjur Enterprise node which was queried against.
+
+          Includes authenticator info, release/version info, configuration details,
+          internal services, and role information.
+        operationId: "info"
+        responses:
+          "200":
+            description: "info"
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Info'
