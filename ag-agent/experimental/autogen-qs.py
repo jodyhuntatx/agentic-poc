@@ -1,5 +1,4 @@
-import asyncio, logging
-from pathlib import Path
+import asyncio
 from autogen_ext.tools.langchain import LangChainToolAdapter
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 from autogen_agentchat.messages import TextMessage
@@ -7,6 +6,8 @@ from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.ui import Console
 from autogen_core import CancellationToken
 
+import logging
+from pathlib import Path
 Path("./logs").mkdir(parents=True, exist_ok=True)
 logfile = f"./logs/langgraph.log"
 logfmode = 'w'                # w = overwrite, a = append
@@ -15,14 +16,9 @@ loglevel = logging.DEBUG
 # Cuidado! DEBUG will leak secrets!
 logging.basicConfig(filename=logfile, encoding='utf-8', level=loglevel, filemode=logfmode)
 
-
-# Instantiate connection to hosted LLM
-import os, sys
-def _check_env(var: str):
-    if not os.environ.get(var):
-        print(f"Required env var {var} is not set.")
-        sys.exit(-1)
-_check_env("OPENAI_API_KEY")
+# Check for required env vars
+import os
+os.environ.get("OPENAI_API_KEY")
 
 #########################################
 # Create DB object with secrets from Conjur
@@ -31,7 +27,6 @@ _check_env("OPENAI_API_KEY")
 # Function to get JWT for authentication
 import json
 import requests
-
 
 # function to get JWT from IDP given only a workload ID as parameter
 def jwtProvider_jwtThis(workload_id: str) -> str:

@@ -1,49 +1,47 @@
 #!/bin/bash
 
+declare -a FILES_TO_DELETE=(
+".trust"
+"jwt-this"
+"jwt.info"
+"*.log"
+)
+
+declare -a DIRS_TO_DELETE=(
+".info"
+".ipynb_checkpoints"
+"__pycache__"
+".cache"
+)
+
 echo "Before:"
 for i in $(ls -d */); do
   du -sh $i
 done
 echo "$(du -sh .) Total" 
 
-pushd lg-agent-k8s > /dev/null
-  rm -rf __pycache__ logs .ipynb_checkpoints > /dev/null
+# kill jupyter env
+pushd bin
+  ./reset_vjupyter.sh
+popd
 
-  pushd conjur-setup > /dev/null
-    rm -rf .info __pycache__ > /dev/null
-  popd > /dev/null
+# kill running jwt-this
+PID=$(ps -ax | grep "http://jwt-this" | grep -v grep | awk '{print $2}')
+kill -9 $PID
 
-  pushd conjur-test > /dev/null
-    rm -rf __pycache__ logs  > /dev/null
-  popd > /dev/null
-popd > /dev/null
+for i in "${FILES_TO_DELETE[@]}"; do
+  rm_me=$(find . -type f -name "$i" -print)
+  for f in $rm_me; do
+    rm $f
+  done
+done
 
-pushd lg-agent-docker > /dev/null
-  rm -rf __pycache__ logs .ipynb_checkpoints > /dev/null
-
-  pushd conjur-setup > /dev/null
-    rm -rf .trust jwt-this jwt.info __pycache__  > /dev/null
-  popd > /dev/null
-
-  pushd conjur-test > /dev/null
-    rm -rf __pycache__ logs  > /dev/null
-  popd > /dev/null
-popd > /dev/null
-
-pushd autogen > /dev/null
-  rm -rf __pycache__ logs .ipynb_checkpoints > /dev/null
-
-  pushd conjur-setup > /dev/null
-    rm -rf .trust jwt-this jwt.info __pycache__  > /dev/null
-  popd > /dev/null
-popd > /dev/null
-
-pushd k8s-bot/k8s_bot > /dev/null
-  rm -rf __pycache__ > /dev/null
-  pushd agents > /dev/null
-    rm -rf __pycache__ > /dev/null
-  popd > /dev/null
-popd > /dev/null
+for i in "${DIRS_TO_DELETE[@]}"; do
+  rm_me=$(find . -type d -name "$i" -print)
+  for d in $rm_me; do
+    rm -rf $d
+  done
+done
 
 echo
 echo
