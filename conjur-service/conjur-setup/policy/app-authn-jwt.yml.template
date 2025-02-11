@@ -1,0 +1,18 @@
+# Applied at /data
+# Defines workloads that authenticate to /conjur/authn-jwt/agentic
+
+- !policy
+  id: agentic
+  body:
+    - !group
+
+    - &hosts
+        - !host
+            id: ai-agent
+            annotations:
+                authn-jwt/agentic/workload: ai-agent
+
+    - !grant 
+        role: !group
+        members: *hosts
+
